@@ -1,8 +1,8 @@
 import { ArrowBack } from "@mui/icons-material";
 import { IconButton, Typography } from "@mui/material";
-import dayjs from "dayjs";
 import { Navigate, useNavigate } from "react-router-dom";
-import { getMonthName } from "../../../utils/function";
+import { getMonthName } from "@/utils/function";
+import dayjs from "dayjs";
 
 interface Props {
   isLoading: boolean;
@@ -12,7 +12,6 @@ interface Props {
 
 const PickTimeHeader = ({ isLoading, isFetched, day }: Props) => {
   const navigate = useNavigate();
-  console.log(!isLoading && !day);
 
   if (isFetched && !day) return <Navigate to={"/"} />;
 

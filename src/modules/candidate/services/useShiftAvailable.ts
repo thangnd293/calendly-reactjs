@@ -1,9 +1,9 @@
 import { client } from "@/common";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { Shift } from "./type";
 
-export function getShiftsAvailable(id: string): Promise<Shift[]> {
+function getShiftsAvailable(id: string): Promise<Shift[]> {
   return client({
     url: `shifts/working-day-available/${id}`,
     method: "GET",
@@ -15,4 +15,12 @@ export function useShiftsAvailable(id: string) {
     queryKey: ["working-days", id, "shifts", "available"],
     queryFn: () => getShiftsAvailable(id),
   });
+}
+
+export function useInvalidatedShiftsAvailable(id: string) {
+  const queryClient = useQueryClient();
+  return () =>
+    queryClient.invalidateQueries({
+      queryKey: ["working-days", id, "shifts", "available"],
+    });
 }

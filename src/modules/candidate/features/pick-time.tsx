@@ -1,28 +1,49 @@
 import { Container, Stack, Typography } from "@mui/material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import PickTimeHeader from "../components/PickTimeHeader";
 import PickTimeWrapper from "../components/PickTimeWrapper";
 import TimePicker from "../components/TimePicker";
-import { createReservation } from "../services/useCreateReservation";
-import { useShiftsAvailable } from "../services/useShiftAvailable";
+import { Shift } from "../services/type";
+import { useCreateReservation } from "../services/useCreateReservation";
+import {
+  useInvalidatedShiftsAvailable,
+  useShiftsAvailable,
+} from "../services/useShiftAvailable";
 import { useWorkingDay } from "../services/useWorkingDay";
 
 const PickTime = () => {
   const { day } = useParams();
 
   const workingDay = useWorkingDay(day as string);
-  const { isLoading, data, isSuccess } = useShiftsAvailable(day as string);
+  const shifts = useShiftsAvailable(day as string);
+  const invalidatedShiftsAvailable = useInvalidatedShiftsAvailable(
+    day as string
+  );
 
-  const queryClient = useQueryClient();
-
-  const createReservationMutation = useMutation({
-    mutationFn: createReservation,
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["working-days", day, "shifts", "available"],
-      }),
+  const {} = useMutation({
+    mutationFn: (test: string) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(test);
+        }, 2000);
+      });
+    },
   });
+
+  const { mutate: createReservationMutation } = useCreateReservation();
+
+  const onCreateReservationMutation = (shift: string) => {
+    createReservationMutation(
+      {
+        user: "Thang Nguyen",
+        shift: shift,
+      },
+      {
+        onSuccess: invalidatedShiftsAvailable,
+      }
+    );
+  };
 
   return (
     <PickTimeWrapper>
@@ -48,16 +69,12 @@ const PickTime = () => {
         </Stack>
 
         <Stack spacing="10px">
-          {data?.map((time) => (
+          {shifts.data?.map((time: Shift) => (
             <TimePicker
               key={time._id}
-              time={time.startTime}
-              onConfirm={() => {
-                createReservationMutation.mutate({
-                  user: "Thang Nguyen",
-                  shift: time._id,
-                });
-              }}
+              startTime={time.startTime}
+              endTime={time.endTime}
+              onConfirm={() => onCreateReservationMutation(time._id)}
             />
           ))}
         </Stack>

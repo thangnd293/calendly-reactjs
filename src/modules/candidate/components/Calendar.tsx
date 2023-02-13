@@ -23,6 +23,13 @@ const Calendar = () => {
 
   const availableDays = data?.map((day) => dayjs(day.day));
 
+  const onSelectDate = (date: Dayjs | null) => {
+    const selectedItem = data?.find((item) =>
+      dayjs(item.day).isSame(date, "day")
+    );
+    if (selectedItem) navigate(`/${selectedItem._id}`);
+  };
+
   return isLoading ? (
     <Stack
       sx={{
@@ -43,12 +50,7 @@ const Calendar = () => {
         renderInput={(params) => <TextField {...params} />}
         disablePast
         shouldDisableDate={shouldDisableDate(availableDays)}
-        onAccept={(value) => {
-          const selectedItem = data?.find((item) =>
-            dayjs(item.day).isSame(value, "day")
-          );
-          if (selectedItem) navigate(`/${selectedItem._id}`);
-        }}
+        onAccept={onSelectDate}
       />
     </LocalizationProvider>
   );

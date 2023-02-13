@@ -2,11 +2,12 @@ import { Box, Button, Stack } from "@mui/material";
 import { useState } from "react";
 
 interface Props {
-  time: string;
+  startTime: string;
+  endTime: string;
   onConfirm: () => void;
 }
 
-const TimePicker = ({ time, onConfirm: _onConfirm }: Props) => {
+const TimePicker = ({ startTime, endTime, onConfirm: _onConfirm }: Props) => {
   const [isSelected, setSelected] = useState(false);
   const onSelected = () => {
     setSelected(true);
@@ -29,7 +30,7 @@ const TimePicker = ({ time, onConfirm: _onConfirm }: Props) => {
           fullWidth
           onClick={onUnselected}
         >
-          {time}
+          {startTime} - {endTime}
         </Button>
         <Button variant="contained" fullWidth onClick={onConfirm}>
           Confirm
@@ -55,7 +56,7 @@ const TimePicker = ({ time, onConfirm: _onConfirm }: Props) => {
         })}
         onClick={onSelected}
       >
-        {time}
+        {startTime} - {endTime}
       </Box>
     ),
   };
