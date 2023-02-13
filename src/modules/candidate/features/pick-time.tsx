@@ -1,41 +1,36 @@
-import { ArrowBack } from "@mui/icons-material";
-import {
-  Container,
-  FormControlLabel,
-  IconButton,
-  Stack,
-  Switch,
-  Typography,
-} from "@mui/material";
-import { Box } from "@mui/system";
-import { useNavigate } from "react-router-dom";
+import { Container, Stack, Typography } from "@mui/material";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import PickTimeHeader from "../components/PickTimeHeader";
 import PickTimeWrapper from "../components/PickTimeWrapper";
 import TimePicker from "../components/TimePicker";
+import { createReservation } from "../services/useCreateReservation";
+import { useShiftsAvailable } from "../services/useShiftAvailable";
+import { useWorkingDay } from "../services/useWorkingDay";
 
 const PickTime = () => {
-  const navigate = useNavigate();
+  const { day } = useParams();
+
+  const workingDay = useWorkingDay(day as string);
+  const { isLoading, data, isSuccess } = useShiftsAvailable(day as string);
+
+  const queryClient = useQueryClient();
+
+  const createReservationMutation = useMutation({
+    mutationFn: createReservation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["working-days", day, "shifts", "available"],
+      }),
+  });
+
   return (
     <PickTimeWrapper>
-      <IconButton
-        color="primary"
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-        onClick={() => navigate(-1)}
-      >
-        <ArrowBack />
-      </IconButton>
-      <Typography variant="h3" align="center" color="GrayText">
-        Wednesday
-      </Typography>
-      <Typography align="center" color="GrayText" fontSize="14px">
-        June 28, 2017
-      </Typography>
-      <Typography mt="20px" align="center" color="GrayText" fontWeight="600">
-        Times are Pacific Time - US & Canada
-      </Typography>
+      <PickTimeHeader
+        isLoading={workingDay.isLoading}
+        isFetched={workingDay.isFetched}
+        day={workingDay.data?.day}
+      />
       <Container
         sx={{
           marginTop: "20px",
@@ -50,21 +45,19 @@ const PickTime = () => {
           <Typography align="center" fontWeight="600">
             Select a Time
           </Typography>
-          <Stack direction="row" alignItems="center" spacing="0">
-            <Typography>am/pm</Typography>
-
-            <FormControlLabel
-              control={<Switch defaultChecked />}
-              label="24 hr"
-            />
-          </Stack>
         </Stack>
+
         <Stack spacing="10px">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {data?.map((time) => (
             <TimePicker
-              key={index}
-              time="08:30am"
-              onConfirm={() => console.log("confirm")}
+              key={time._id}
+              time={time.startTime}
+              onConfirm={() => {
+                createReservationMutation.mutate({
+                  user: "Thang Nguyen",
+                  shift: time._id,
+                });
+              }}
             />
           ))}
         </Stack>

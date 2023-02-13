@@ -29,7 +29,7 @@ const TimePicker = ({ time, onConfirm: _onConfirm }: Props) => {
           fullWidth
           onClick={onUnselected}
         >
-          08:30am
+          {time}
         </Button>
         <Button variant="contained" fullWidth onClick={onConfirm}>
           Confirm

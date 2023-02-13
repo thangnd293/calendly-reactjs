@@ -1,18 +1,40 @@
-import * as React from "react";
-import dayjs, { Dayjs } from "dayjs";
+import { CircularProgress, Stack } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
+import dayjs, { Dayjs } from "dayjs";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { useWorkingDaysAvailable } from "../services/useWorkingDaysAvailable";
+
+function shouldDisableDate(days: Dayjs[] | undefined) {
+  return (day: Dayjs) => {
+    return !days?.find((date) => {
+      return date.isSame(day, "day");
+    });
+  };
+}
 
 const Calendar = () => {
   const navigate = useNavigate();
-
+  const { isLoading, data } = useWorkingDaysAvailable();
   const [value] = React.useState<Dayjs | null>(null);
-  const availableDates = [dayjs(), dayjs().add(1, "day")];
 
-  return (
+  const availableDays = data?.map((day) => dayjs(day.day));
+
+  return isLoading ? (
+    <Stack
+      sx={{
+        width: "100%",
+        height: "100%",
+      }}
+      alignItems="center"
+      justifyContent="center"
+    >
+      <CircularProgress />
+    </Stack>
+  ) : (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <StaticDatePicker
         displayStaticWrapperAs="desktop"
@@ -20,10 +42,13 @@ const Calendar = () => {
         onChange={(_) => {}}
         renderInput={(params) => <TextField {...params} />}
         disablePast
-        shouldDisableDate={(day) =>
-          !availableDates.find((date) => date.isSame(day, "day"))
-        }
-        onAccept={(value) => navigate(`/${value?.format("DD-MM-YYYY")}`)}
+        shouldDisableDate={shouldDisableDate(availableDays)}
+        onAccept={(value) => {
+          const selectedItem = data?.find((item) =>
+            dayjs(item.day).isSame(value, "day")
+          );
+          if (selectedItem) navigate(`/${selectedItem._id}`);
+        }}
       />
     </LocalizationProvider>
   );
